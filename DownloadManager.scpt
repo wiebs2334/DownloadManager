@@ -7,7 +7,7 @@ to classifyItems for myFiles
 	set videoExtensions to {"mkv", "m4v", "mov", "mp4"}
 	set seasonKeywords to {".S01.", ".S02.", ".S03.", ".S04.", ".S05.", ".S06.", ".S07.", ".S08.", ".S09.", ".S10.", ".S11.", ".S12.", ".S13.", ".S14.", ".S15.", ".S16.", ".S17.", ".S18.", ".S19.", ".S20."}
 	set episodeKeywords to {".S01E", ".S02E", ".S03E", ".S04E", ".S05E", ".S06E", ".S07E", ".S08E", ".S09E", ".S10E", ".S11E", ".S12E", ".S13E", ".S14E", ".S15E", ".S16E", ".S17E", ".S18E", ".S19E", ".S20E"}
-	set SportsKeywords to {"packers", "badgers", "brewers", "nfl", "ncaa"}
+	set SportsKeywords to {"nhl", "nfl", "ncaa"}
 	repeat with anItem in myFiles
 		set anItem to anItem as text
 		set isVideo to false
