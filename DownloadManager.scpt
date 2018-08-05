@@ -1,13 +1,22 @@
+
+property audioKeywords : {"mp3", "aac", "flac", "wav"}
+property videoExtensions : {"mkv", "m4v", "mov", "mp4"}
+
 on run
-	classifyItems for (choose file with multiple selections allowed)
+	set {button returned:buttonReturned} to display dialog "Choose files or folders" buttons {"Cancel", "Choose Files", "Choose Folders"}
+	if buttonReturned is "Choose Files" then
+		classifyItems for (choose file with multiple selections allowed)
+	else
+		classifyItems for (choose folder with multiple selections allowed)
+	end if
+	
 end run
 
+on open theItems
+	classifyItems for theItems
+end open
+
 to classifyItems for myFiles
-	set audioKeywords to {"mp3", "aac", "flac", "wav"}
-	set videoExtensions to {"mkv", "m4v", "mov", "mp4"}
-	set seasonKeywords to {".S01.", ".S02.", ".S03.", ".S04.", ".S05.", ".S06.", ".S07.", ".S08.", ".S09.", ".S10.", ".S11.", ".S12.", ".S13.", ".S14.", ".S15.", ".S16.", ".S17.", ".S18.", ".S19.", ".S20."}
-	set episodeKeywords to {".S01E", ".S02E", ".S03E", ".S04E", ".S05E", ".S06E", ".S07E", ".S08E", ".S09E", ".S10E", ".S11E", ".S12E", ".S13E", ".S14E", ".S15E", ".S16E", ".S17E", ".S18E", ".S19E", ".S20E"}
-	set SportsKeywords to {"nhl", "nfl", "ncaa"}
 	repeat with anItem in myFiles
 		set anItem to anItem as text
 		set isVideo to false
@@ -16,57 +25,53 @@ to classifyItems for myFiles
 		set isAudio to false
 		set isSports to false
 		tell application "System Events" to set {theClass, theName, theExt, theContainer} to {class, name, name extension, container} of disk item anItem --set variables
-		
+		set className to theClass as text
 		(*  &&&&&&&&&&&&&&&&&&&&&&&&&&&&  Files  &&&&&&&&&&&&&&&&&&&&&&&&&&&& *)
-		if (theClass as text) is not in {"folder", "«class cfol»"} then
+		if className is "file" then
 			###########  Video ############
-			if (theExt as text) is in videoExtensions then --search through all video extensions
+			if theExt is in videoExtensions then --search through all video extensions
 				set isVideo to true
 				###########  TV ############
-				repeat with episodeKeyword in episodeKeywords --search through all tv episode keywords
-					if (theName as text) contains episodeKeyword then
-						set isTV to true
-					end if
-				end repeat
-				###########  Sports ############
-				repeat with sportsKeyword in SportsKeywords --search through all sports keywords
-					if (theName as text) contains sportsKeyword then
+				try
+					find text "\\.S\\d{2}E" in theName with regexp
+					set isTV to true
+				on error
+					###########  Sports ############
+					try
+						find text "(nhl|nfl|ncaa)" in theName with regexp
 						set isSports to true
-					end if
-				end repeat
-				###########  Movies ############
-				if not isTV and not isSports then set isMovie to true --Set sports if others are false
-			end if
-			###########  Audio ############
-			if (theExt as text) is in audioKeywords then
+					on error
+						###########  Movies ############
+						set isMovie to true
+					end try
+				end try
+				###########  Audio ############
+			else if theExt is in audioKeywords then
 				set isAudio to true
 			end if
-		end if --is not folder
-		
-		(*  &&&&&&&&&&&&&&&&&&&&&&&&&&&&  Folders  &&&&&&&&&&&&&&&&&&&&&&&&&&&& *)
-		if (theClass as text) is in {"folder", "«class cfol»"} then
+			
+			(*  &&&&&&&&&&&&&&&&&&&&&&&&&&&&  Folders  &&&&&&&&&&&&&&&&&&&&&&&&&&&& *)
+		else if className is "folder" then
 			###########  TV ############
-			repeat with seasonKeyword in seasonKeywords --Search all season keywords
-				if (theName as text) contains seasonKeyword then
-					set isTV to true
-				end if
-			end repeat
-			###########  Audio ############
-			repeat with audioExtensions in audioKeywords --Search all season keywords
-				if (theName as text) contains audioKeyword then
+			try
+				find text "\\.S\\d{2}\\." in theName with regexp
+				set isTV to true
+			on error
+				try
+					###########  Audio ############
+					find text "(mp3|aac|flac|wav)" in theName with regexp
 					set isAudio to true
-				end if
-			end repeat
-			###########  Movie ############
-			if not isAudio and not isTV and not isSports then
-				set isMovie to true
-			end if
+				on error
+					###########  Movie ############
+					set isMovie to true
+				end try
+			end try
 		end if
 		
 		display dialog ("Type:" & theClass & " || Ext:" & theExt & " || Video:" & isVideo & "
-		" & theName & "
-		Movie:" & isMovie & " || TV:" & isTV & " || Sports:" & isSports & "
-		Audio:" & isAudio)
+        " & theName & "
+        Movie:" & isMovie & " || TV:" & isTV & " || Sports:" & isSports & "
+        Audio:" & isAudio)
 		
 	end repeat
 end classifyItems
