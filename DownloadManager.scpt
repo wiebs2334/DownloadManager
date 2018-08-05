@@ -52,26 +52,36 @@ to classifyItems for myFiles
 			
 			(*  &&&&&&&&&&&&&&&&&&&&&&&&&&&&  Folders  &&&&&&&&&&&&&&&&&&&&&&&&&&&& *)
 		else if className is "folder" then
-			###########  TV ############
-			try
-				find text "\\.S\\d{2}\\." in theName with regexp
-				set isTV to true
-			on error
+			#set (get entire contents of anItem) to folderContents
+			set the folderContents to list folder anItem without invisibles
+			repeat with folderContent in folderContents
+				set folderContent to folderContent as text
+				tell application "System Events" to set {folderItemClass, folderItemName, folderItemExt, folderItemContainer} to {class, name, name extension, container} of disk item folderContent --this throws can't get disk item error
+				###########  TV ############
 				try
-					###########  Audio ############
-					find text "(mp3|aac|flac|wav)" in theName with regexp
-					set isAudio to true
+					find text "\\.S\\d{2}\\." in theName with regexp
+					set isTV to true
 				on error
-					###########  Movie ############
-					set isMovie to true
+					try
+						###########  Audio ############
+						find text "(mp3|aac|flac|wav)" in theName with regexp
+						set isAudio to true
+					on error
+						###########  Movie ############
+						set isMovie to true
+					end try
 				end try
-			end try
-		end if
-		
-		display dialog ("Type:" & theClass & " || Ext:" & theExt & " || Video:" & isVideo & "
+				display dialog ("Type:" & theClass & " || Ext:" & theExt & " || Video:" & isVideo & "
         " & theName & "
         Movie:" & isMovie & " || TV:" & isTV & " || Sports:" & isSports & "
         Audio:" & isAudio)
+			end repeat
+		end if
+		
+		(*		display dialog ("Type:" & theClass & " || Ext:" & theExt & " || Video:" & isVideo & "
+        " & theName & "
+        Movie:" & isMovie & " || TV:" & isTV & " || Sports:" & isSports & "
+        Audio:" & isAudio) *)
 		
 	end repeat
 end classifyItems
